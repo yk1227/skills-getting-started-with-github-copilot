@@ -31,11 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
           participantsHTML = `<div class="participants-section"><h5>Participants</h5><div class="participants-list"><em>No participants yet</em></div></div>`;
         } else {
           const items = participants
-            .map((p) => {
-              const label = String(p);
-              const initial = label.trim().charAt(0).toUpperCase() || "?";
-              return `<li class="participant-item"><span class="participant-badge">${initial}</span><span class="participant-name">${label}</span></li>`;
-            })
+                .map((p) => {
+                  const label = String(p);
+                  const initial = label.trim().charAt(0).toUpperCase() || "?";
+                  // Add a small delete button next to each participant. Use data attributes for activity and email.
+                  return `<li class="participant-item"><span class="participant-badge">${initial}</span><span class="participant-name">${label}</span><button class="participant-delete" data-activity="${name}" data-email="${label}" aria-label="Remove participant">🗑️</button></li>`;
+                })
             .join("");
           participantsHTML = `<div class="participants-section"><h5>Participants</h5><div class="participants-list"><ul>${items}</ul></div></div>`;
         }
@@ -83,6 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities so the newly signed-up participant appears immediately
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -99,6 +102,44 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
+    }
+  });
+
+  // Delegate click listener for participant delete buttons
+  activitiesList.addEventListener("click", async (event) => {
+    const btn = event.target.closest(".participant-delete");
+    if (!btn) return;
+
+    const activityName = btn.dataset.activity;
+    const email = btn.dataset.email;
+    if (!activityName || !email) return;
+
+    // Send DELETE request to unregister participant
+    try {
+      const resp = await fetch(
+        `/activities/${encodeURIComponent(activityName)}/participants?email=${encodeURIComponent(email)}`,
+        { method: "DELETE" }
+      );
+
+      const result = await resp.json().catch(() => ({}));
+
+      if (resp.ok) {
+        // Refresh activities list to reflect change
+        fetchActivities();
+        messageDiv.textContent = result.message || `Removed ${email} from ${activityName}`;
+        messageDiv.className = "success";
+        messageDiv.classList.remove("hidden");
+        setTimeout(() => messageDiv.classList.add("hidden"), 4000);
+      } else {
+        messageDiv.textContent = result.detail || `Failed to remove ${email}`;
+        messageDiv.className = "error";
+        messageDiv.classList.remove("hidden");
+      }
+    } catch (err) {
+      console.error("Error removing participant:", err);
+      messageDiv.textContent = "Failed to remove participant. Please try again.";
+      messageDiv.className = "error";
+      messageDiv.classList.remove("hidden");
     }
   });
 

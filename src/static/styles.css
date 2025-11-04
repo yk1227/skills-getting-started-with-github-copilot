@@ -94,8 +94,9 @@ section h3 {
 }
 
 .participants-list ul {
-  list-style: disc;
-  margin-left: 20px;
+  list-style: none; /* hide default bullets */
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .participant-item {
@@ -105,6 +106,20 @@ section h3 {
   margin-bottom: 6px;
   font-size: 14px;
   color: #444;
+  justify-content: space-between; /* push delete button to the right */
+}
+
+.participant-delete {
+  background: transparent;
+  border: none;
+  color: #c62828;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.participant-delete:hover {
+  background-color: rgba(198, 40, 40, 0.08);
 }
 
 /* 작은 원형 배지 (이니셜 또는 아이콘 용) */
