@@ -12,19 +12,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Clear loading message
       activitiesList.innerHTML = "";
+      // Clear select options except placeholder
+      Array.from(activitySelect.options)
+        .slice(1)
+        .forEach((opt) => opt.remove());
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
 
-        const spotsLeft = details.max_participants - details.participants.length;
+        const spotsLeft = details.max_participants - (details.participants?.length || 0);
+
+        // Build participants HTML
+        const participants = details.participants || [];
+        let participantsHTML = "";
+        if (participants.length === 0) {
+          participantsHTML = `<div class="participants-section"><h5>Participants</h5><div class="participants-list"><em>No participants yet</em></div></div>`;
+        } else {
+          const items = participants
+            .map((p) => {
+              const label = String(p);
+              const initial = label.trim().charAt(0).toUpperCase() || "?";
+              return `<li class="participant-item"><span class="participant-badge">${initial}</span><span class="participant-name">${label}</span></li>`;
+            })
+            .join("");
+          participantsHTML = `<div class="participants-section"><h5>Participants</h5><div class="participants-list"><ul>${items}</ul></div></div>`;
+        }
 
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          ${participantsHTML}
         `;
 
         activitiesList.appendChild(activityCard);
